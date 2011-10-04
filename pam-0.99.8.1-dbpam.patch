@@ -1,0 +1,11 @@
+--- Linux-PAM-0.99.8.1/configure.in.dbpam	2007-07-23 13:59:20.000000000 +0200
++++ Linux-PAM-0.99.8.1/configure.in	2007-07-23 14:06:54.000000000 +0200
+@@ -355,7 +355,7 @@
+ 	AC_HELP_STRING([--with-db-uniquename=extension],[Unique name for db libraries and functions.]))
+ if test x"$WITH_DB" != xno ; then
+         if test x"$WITH_DB" = xyes -o x"$WITH_DB" = xdb ; then
+-              AC_CHECK_LIB([db$with_db_uniquename], [db_create$with_db_uniquename], LIBDB="-ldb$with_db_uniquename", LIBDB="")
++              AC_CHECK_LIB([db], [db_create$with_db_uniquename], LIBDB="-ldb", LIBDB="")
+               if test -z "$LIBDB" ; then
+                   AC_CHECK_LIB([db$with_db_uniquename], [dbm_store$with_db_uniquename], LIBDB="-ldb$with_db_uniquename", LIBDB="")
+               fi

@@ -1,0 +1,61 @@
+* Tue Jun 07 2011 Anas Nashif <anas.nashif@intel.com> - 1.1.1
+- Split documentation
+
+* Wed Jun 01 2011 Auke Kok <auke-jan.h.kok@intel.com> - 1.1.1
+- Add pam_systemd.so - this will facilitate user sessions to
+  be easier to work with when you ssh in to a machine, combine
+  cgroups on the fly, etc.
+
+* Fri Apr 22 2011 Gu Chaojie <chao.jie.gu@intel.com> - 1.1.1
+- Add a patch to fix CVE bug for BMC#13035,13065,13070,13073
+  13111,13114
+
+* Thu Jul 22 2010 Yan Li <yan.i.li@intel.com> - 1.1.1
+- Remove wrong comments in system-auth.pamd, it's not auto-generated
+  since we don't use authconfig any more
+- Provide a new script install-pam-module.sh for installing new PAM modules
+
+* Mon Jul 05 2010 Anas Nashif <anas.nashif@intel.com> - 1.1.1
+- Disable cracklib module and remove dependency on cracklib 
+- Disable unused postgresok module
+
+* Fri Jun 25 2010 Yan Li <yan.i.li@intel.com> - 1.1.1
+- Rephrase system-auth for better compatibility with ecryptfs
+
+* Sun Feb 28 2010 Anas Nashif <anas.nashif@intel.com> - 1.1.1
+- Cleanup spec
+- Added zlib-devel to BuildRequires
+
+* Fri Jan 29 2010 Passion Zhao <passion.zhao@intel.com> - 1.1.1-1
+- Upgrade to 1.1.1
+
+* Fri Aug 21 2009 Passion Zhao <passion.zhao@intel.com> - 1.1.0-1
+- Upgrade to 1.1.0, with redhat-pam upgrading to 0.99.10
+- Remove upstreamed patch: pam-1.0.0-sepermit-screensaver.patch
+
+* Wed Jul 1 2009 Arjan van de Ven <arjan@linux.intel.com> 1.0.4
+- add the /dev/input/* files to the list of device nodes the local user
+  has access to
+* Wed Jun 24 2009 Arjan van de Ven <arjan@linux.intel.com> 1.0.4
+- allow tty's to be in the "tty3" form as well as "tty03" in pam_console
+
+* Wed Mar 12 2009 Passion Zhao <passion.zhao@intel.com> 1.0.4
+- Fix the Source's URL
+- Update the version to 1.0.4
+- remove pam-1.0.1-selinux-restore-execcon.patch because 1.0.4 have included it.
+
+* Tue Jan 13 2009 Anas Nashif <anas.nashif@intel.com> 1.0.1
+- Fixed PreReq
+
+* Thu Dec 18 2008 Anas Nashif <anas.nashif@intel.com> 1.0.1
+- Do not require the obvious stuff
+
+* Sun Nov 02 2008 Anas Nashif <anas.nashif@intel.com> 1.0.1
+- use external db4
+
+* Tue Oct 07 2008 Anas Nashif <anas.nashif@intel.com> 1.0.1
+- fixed auth without cracklib
+
+* Sun Oct 05 2008 Anas Nashif <anas.nashif@intel.com> 1.0.1
+- split package into modules
+
