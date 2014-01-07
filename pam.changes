@@ -1,3 +1,6 @@
+* Tue Jan 07 2014 Carsten Munk <carsten.munk@jollamobile.com> - 1.1.1
+- Add aarch64 support and work around glibc 2.18 issue
+
 * Tue Jan 22 2013 Oleg Girko <ol+mer@infoserver.ru> - 1.1.1
 - Add workaround to build pam with scratchbox2.
 

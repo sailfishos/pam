@@ -37,6 +37,8 @@ Patch32: pam-0.99.3.0-tally-fail-close.patch
 Patch33: pam-fix-console-regexp.patch
 Patch34: pam-fix-security-problem.patch
 
+Patch35: pam-aarch64.patch
+
 %define _sbindir /sbin
 %define _moduledir /%{_lib}/security
 %define _secconfdir %{_sysconfdir}/security
@@ -99,6 +101,7 @@ popd
 %patch32 -p1 -b .fail-close
 %patch33 -p1 -b .ttysingledigit
 %patch34 -p1 -b .pam-fix-security-problem
+%patch35 -p1 -b .aarch64
 
 libtoolize --copy --force && aclocal && autoheader
 autoreconf
@@ -162,6 +165,9 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/doc/Linux-PAM
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/environment
 
 # Install default configuration files.
+# Work around bug in install-data
+mkdir -p $RPM_BUILD_ROOT/var/run/sepermit
+mkdir -p $RPM_BUILD_ROOT/etc/security/namespace.d
 install -d -m 755 $RPM_BUILD_ROOT%{_pamconfdir}
 install -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_pamconfdir}/other
 install -m 644 %{SOURCE6} $RPM_BUILD_ROOT%{_pamconfdir}/system-auth
@@ -207,6 +213,7 @@ install -m 755 %{SOURCE100} $RPM_BUILD_ROOT%{_prefix}%{_sbindir}
 
 %find_lang Linux-PAM
 mv Linux-PAM.lang pam.lang
+
 
 %check
 # Make sure every module subdirectory gave us a module.  Yes, this is hackish.
