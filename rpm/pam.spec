@@ -115,8 +115,6 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch33 -p1
 
 %build
-# To make the changelog generation work.
-mkdir -p .git
 touch ChangeLog
 
 # Create dummy man pages to get pass docbook
@@ -246,8 +244,6 @@ fi
 %config(noreplace) %{_pamconfdir}/config-util
 %config(noreplace) %{_pamconfdir}/postlogin
 %doc Copyright
-%doc doc/txts
-%doc doc/specs/rfc86.0.txt
 %{_pamlibdir}/libpam.so.*
 %{_pamlibdir}/libpamc.so.*
 %{_pamlibdir}/libpam_misc.so.*
@@ -329,8 +325,6 @@ fi
 %ghost %verify(not md5 size mtime) /var/log/tallylog
 %dir /var/run/faillock
 %{_prefix}/lib/tmpfiles.d/pam.conf
-%{_mandir}/man5/*
-%{_mandir}/man8/*
 
 %files devel
 %defattr(-,root,root)
@@ -338,4 +332,8 @@ fi
 %{_libdir}/libpam.so
 %{_libdir}/libpamc.so
 %{_libdir}/libpam_misc.so
+%doc doc/txts
+%doc doc/specs/rfc86.0.txt
+%{_mandir}/man5/*
+%{_mandir}/man8/*
 
