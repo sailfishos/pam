@@ -115,8 +115,6 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch33 -p1
 
 %build
-# To make the changelog generation work.
-mkdir -p .git
 touch ChangeLog
 
 # Create dummy man pages to get pass docbook
