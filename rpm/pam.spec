@@ -86,6 +86,14 @@ having to recompile programs that handle authentication. This package
 contains header files used for building both PAM-aware applications
 and modules for use with the PAM system.
 
+%package doc
+Summary:   Documentation for %{name}
+Group:     Documentation
+Requires:  %{name} = %{version}-%{release}
+
+%description doc
+Man pages for %{name}.
+
 %prep
 %setup -q -n %{name}-%{version}/pam
 
@@ -188,8 +196,10 @@ rm -f $RPM_BUILD_ROOT%{_pamlibdir}/${lib}.so
 done
 %endif
 
-# Duplicate doc file sets.
-rm -fr $RPM_BUILD_ROOT/usr/share/doc/pam
+rm -fr $RPM_BUILD_ROOT%{_docdir}/%{name}
+mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
+install -m0644 -t $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version} \
+        doc/txts/* doc/specs/rfc86.0.txt
 
 # Install the file for autocreation of /var/run subdirectories on boot
 install -m644 -D %{SOURCE15} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/pam.conf
@@ -235,6 +245,7 @@ fi
 
 %files -f Linux-PAM.lang
 %defattr(-,root,root)
+%license Copyright
 %dir %{_pamconfdir}
 %config(noreplace) %{_pamconfdir}/other
 %config(noreplace) %{_pamconfdir}/system-auth
@@ -243,7 +254,6 @@ fi
 %config(noreplace) %{_pamconfdir}/smartcard-auth
 %config(noreplace) %{_pamconfdir}/config-util
 %config(noreplace) %{_pamconfdir}/postlogin
-%doc Copyright
 %{_pamlibdir}/libpam.so.*
 %{_pamlibdir}/libpamc.so.*
 %{_pamlibdir}/libpam_misc.so.*
@@ -332,8 +342,9 @@ fi
 %{_libdir}/libpam.so
 %{_libdir}/libpamc.so
 %{_libdir}/libpam_misc.so
-%doc doc/txts
-%doc doc/specs/rfc86.0.txt
+
+%files doc
+%defattr(-,root,root)
 %{_mandir}/man5/*
 %{_mandir}/man8/*
-
+%{_docdir}/%{name}-%{version}
