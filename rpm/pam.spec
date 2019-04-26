@@ -135,7 +135,8 @@ autoreconf -v -f -i
 	--disable-selinux \
 	--disable-audit \
 	--disable-static \
-	--disable-prelude
+	--disable-prelude \
+	--disable-nis
 make
 # we do not use _smp_mflags because the build of sources in yacc/flex fails
 
