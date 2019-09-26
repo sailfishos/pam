@@ -248,13 +248,13 @@ fi
 %defattr(-,root,root)
 %license Copyright
 %dir %{_pamconfdir}
-%config(noreplace) %{_pamconfdir}/other
-%config(noreplace) %{_pamconfdir}/system-auth
-%config(noreplace) %{_pamconfdir}/password-auth
-%config(noreplace) %{_pamconfdir}/fingerprint-auth
-%config(noreplace) %{_pamconfdir}/smartcard-auth
-%config(noreplace) %{_pamconfdir}/config-util
-%config(noreplace) %{_pamconfdir}/postlogin
+%config %{_pamconfdir}/other
+%config %{_pamconfdir}/system-auth
+%config %{_pamconfdir}/password-auth
+%config %{_pamconfdir}/fingerprint-auth
+%config %{_pamconfdir}/smartcard-auth
+%config %{_pamconfdir}/config-util
+%config %{_pamconfdir}/postlogin
 %{_pamlibdir}/libpam.so.*
 %{_pamlibdir}/libpamc.so.*
 %{_pamlibdir}/libpam_misc.so.*
@@ -316,20 +316,20 @@ fi
 %{_moduledir}/pam_xauth.so
 %{_moduledir}/pam_filter
 %dir %{_secconfdir}
-%config(noreplace) %{_secconfdir}/access.conf
-%config(noreplace) %{_secconfdir}/chroot.conf
+%config %{_secconfdir}/access.conf
+%config %{_secconfdir}/chroot.conf
 %config %{_secconfdir}/console.perms
-%config(noreplace) %{_secconfdir}/console.handlers
-%config(noreplace) %{_secconfdir}/group.conf
-%config(noreplace) %{_secconfdir}/limits.conf
+%config %{_secconfdir}/console.handlers
+%config %{_secconfdir}/group.conf
+%config %{_secconfdir}/limits.conf
 %dir %{_secconfdir}/limits.d
-%config(noreplace) %{_secconfdir}/limits.d/90-nproc.conf
-%config(noreplace) %{_secconfdir}/namespace.conf
+%config %{_secconfdir}/limits.d/90-nproc.conf
+%config %{_secconfdir}/namespace.conf
 %dir %{_secconfdir}/namespace.d
-%attr(755,root,root) %config(noreplace) %{_secconfdir}/namespace.init
-%config(noreplace) %{_secconfdir}/pam_env.conf
-%config(noreplace) %{_secconfdir}/time.conf
-%config(noreplace) %{_secconfdir}/opasswd
+%attr(755,root,root) %config %{_secconfdir}/namespace.init
+%config %{_secconfdir}/pam_env.conf
+%config %{_secconfdir}/time.conf
+%config %{_secconfdir}/opasswd
 %dir %{_secconfdir}/console.apps
 %dir %{_secconfdir}/console.perms.d
 %dir /var/run/console
