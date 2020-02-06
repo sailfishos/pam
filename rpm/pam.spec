@@ -1,19 +1,16 @@
-%define pam_redhat_version 0.99.10-1
+%global pam_redhat_version 1.1.2
 
 Summary: An extensible library which provides authentication for applications
 Name: pam
-Version: 1.1.8
-Release: 2%{?dist}
+Version: 1.3.1
+Release: 1
 # The library is BSD licensed with option to relicense as GPLv2+
 # - this option is redundant as the BSD license allows that anyway.
 # pam_timestamp, pam_loginuid, and pam_console modules are GPLv2+.
 License: BSD and GPLv2+
 Group: System Environment/Base
 Source0: %{name}-%{version}.tar.bz2
-# This is the old location that might be revived in future:
-#Source0: http://ftp.us.kernel.org/pub/linux/libs/pam/library/Linux-PAM-%{version}.tar.bz2
-#Source1: http://ftp.us.kernel.org/pub/linux/libs/pam/library/Linux-PAM-%{version}.tar.bz2.sign
-Source2: https://fedorahosted.org/releases/p/a/pam-redhat/pam-redhat-%{pam_redhat_version}.tar.bz2
+Source2: pam-redhat-%{pam_redhat_version}.tar.bz2
 Source5: other.pamd
 Source6: system-auth.pamd
 Source7: password-auth.pamd
@@ -23,38 +20,53 @@ Source10: config-util.pamd
 Source11: dlopen.sh
 Source12: system-auth.5
 Source13: config-util.5
-Source14: 90-nproc.conf
 Source15: pamtmp.conf
 Source16: postlogin.pamd
 Source17: postlogin.5
-Patch1:  pam-1.0.90-redhat-modules.patch
-Patch2:  pam-1.1.6-std-noclose.patch
-Patch4:  pam-1.1.0-console-nochmod.patch
-Patch5:  pam-1.1.0-notally.patch
-Patch7:  pam-1.1.0-console-fixes.patch
-Patch8:  pam-1.1.1-faillock.patch
-Patch9:  pam-1.1.6-noflex.patch
+Patch1:  pam-1.3.1-redhat-modules.patch
+Patch9:  pam-1.3.1-noflex.patch
 Patch10: pam-1.1.3-nouserenv.patch
-Patch11: pam-1.1.3-console-abstract.patch
-Patch12: pam-1.1.3-faillock-screensaver.patch
 Patch13: pam-1.1.6-limits-user.patch
-Patch15: pam-1.1.6-full-relro.patch
-# FIPS related - non upstreamable
-Patch20: pam-1.1.5-unix-no-fallback.patch
+Patch15: pam-1.1.8-full-relro.patch
 # Upstreamed partially
-Patch29: pam-1.1.6-pwhistory-helper.patch
-Patch31: pam-1.1.6-use-links.patch
-Patch32: pam-1.1.7-tty-audit-init.patch
-Patch33: pam-1.1.8-nodocs.patch
+Patch29: pam-1.3.0-pwhistory-helper.patch
+Patch31: pam-1.1.8-audit-user-mgmt.patch
+Patch33: pam-1.3.0-unix-nomsg.patch
+Patch34: pam-1.3.1-coverity.patch
+# https://github.com/linux-pam/linux-pam/commit/a2b72aeb86f297d349bc9e6a8f059fedf97a499a
+Patch36: pam-1.3.1-unix-remove-obsolete-_unix_read_password-prototype.patch
+# https://github.com/linux-pam/linux-pam/commit/f7abb8c1ef3aa31e6c2564a8aaf69683a77c2016.patch
+Patch37: pam-1.3.1-unix-bcrypt_b.patch
+# https://github.com/linux-pam/linux-pam/commit/dce80b3f11b3c3aa137d18f22699809094dd64b6
+Patch38: pam-1.3.1-unix-gensalt-autoentropy.patch
+# https://github.com/linux-pam/linux-pam/commit/4da9febc39b955892a30686e8396785b96bb8ba5
+Patch39: pam-1.3.1-unix-crypt_checksalt.patch
+# https://github.com/linux-pam/linux-pam/commit/16bd523f85ede9fa9115f80e826f2d803d7e61d4
+Patch40: pam-1.3.1-unix-yescrypt.patch
+# To be upstreamed soon.
+Patch41: pam-1.3.1-unix-no-fallback.patch
+# https://github.com/linux-pam/linux-pam/commit/f9c9c72121eada731e010ab3620762bcf63db08f
+# https://github.com/linux-pam/linux-pam/commit/8eaf5570cf011148a0b55c53570df5edaafebdb0
+Patch42: pam-1.3.1-motd-multiple-paths.patch
+# https://github.com/linux-pam/linux-pam/commit/86eed7ca01864b9fd17099e57f10f2b9b6b568a1
+Patch43: pam-1.3.1-unix-checksalt_syslog.patch
+# https://github.com/linux-pam/linux-pam/commit/d8d11db2cef65da5d2afa7acf21aa9c8cd88abed
+Patch44: pam-1.3.1-unix-fix_checksalt_syslog.patch
+Patch45: pam-1.3.1-namespace-mntopts.patch
+Patch46: pam-1.3.1-lastlog-no-showfailed.patch
+Patch47: pam-1.3.1-lastlog-unlimited-fsize.patch
+Patch48: pam-1.3.1-unix-improve-logging.patch
+Patch49: pam-1.3.1-tty-audit-manfix.patch
+Patch50: pam-1.3.1-fds-closing.patch
+Patch51: pam-1.3.1-authtok-verify-fix.patch
+Patch52: pam-1.3.1-disable-docs.patch
+Patch53: pam-1.3.1-disable-environment-man-page.patch
 
-%define _pamlibdir /lib/
-%define _moduledir /lib/security
-%define _secconfdir %{_sysconfdir}/security
-%define _pamconfdir %{_sysconfdir}/pam.d
-
-%if %{?WITH_AUDIT:0}%{!?WITH_AUDIT:1}
-%define WITH_AUDIT 1
-%endif
+%global _pamlibdir %{_libdir}
+%global _moduledir %{_libdir}/security
+%global _secconfdir %{_sysconfdir}/security
+%global _pamconfdir %{_sysconfdir}/pam.d
+%global _performance_build 1
 
 Requires(post): coreutils, /sbin/ldconfig
 BuildRequires: autoconf >= 2.60
@@ -63,6 +75,8 @@ BuildRequires: bison, flex, sed
 BuildRequires: perl, pkgconfig, gettext-devel
 Requires: glibc >= 2.3.90-37
 BuildRequires: db4-devel
+# Systemd pam library need to be installed on right folder
+Conflicts: systemd <= 225+git21
 
 URL: http://www.linux-pam.org/
 
@@ -95,32 +109,12 @@ Requires:  %{name} = %{version}-%{release}
 Man pages for %{name}.
 
 %prep
-%setup -q -n %{name}-%{version}/pam
+%autosetup -p1 -n %{name}-%{version}/pam
 
 tar xf %{SOURCE2}
 
-perl -pi -e "s/ppc64-\*/ppc64-\* \| ppc64p7-\*/" build-aux/config.sub
-
 # Add custom modules.
 mv pam-redhat-%{pam_redhat_version}/* modules
-
-%patch1 -p1 -b .redhat-modules
-%patch2 -p1 -b .std-noclose
-%patch4 -p1 -b .nochmod
-%patch5 -p1 -b .notally
-%patch7 -p1 -b .console-fixes
-%patch8 -p1 -b .faillock
-%patch9 -p1 -b .noflex
-%patch10 -p1 -b .nouserenv
-%patch11 -p1 -b .abstract
-%patch12 -p1 -b .screensaver
-%patch13 -p1 -b .limits
-%patch15 -p1 -b .relro
-%patch20 -p1 -b .no-fallback
-%patch29 -p1 -b .pwhhelper
-%patch31 -p1 -b .links
-%patch32 -p1 -b .tty-audit-init
-%patch33 -p1
 
 %build
 touch ChangeLog
@@ -130,13 +124,15 @@ find ./ -name '*.?.xml' | xargs printf "touch \`echo %s | sed 's/.xml//g'\`\n" |
 
 autoreconf -v -f -i
 %configure \
+	--disable-rpath \
 	--libdir=%{_pamlibdir} \
 	--includedir=%{_includedir}/security \
 	--disable-selinux \
 	--disable-audit \
 	--disable-static \
 	--disable-prelude \
-	--disable-nis
+	--disable-nis \
+	--disable-cracklib
 make
 # we do not use _smp_mflags because the build of sources in yacc/flex fails
 
@@ -163,18 +159,18 @@ install -m 644 %{SOURCE8} $RPM_BUILD_ROOT%{_pamconfdir}/fingerprint-auth
 install -m 644 %{SOURCE9} $RPM_BUILD_ROOT%{_pamconfdir}/smartcard-auth
 install -m 644 %{SOURCE10} $RPM_BUILD_ROOT%{_pamconfdir}/config-util
 install -m 644 %{SOURCE16} $RPM_BUILD_ROOT%{_pamconfdir}/postlogin
-install -m 644 %{SOURCE14} $RPM_BUILD_ROOT%{_secconfdir}/limits.d/90-nproc.conf
 install -m 600 /dev/null $RPM_BUILD_ROOT%{_secconfdir}/opasswd
 install -d -m 755 $RPM_BUILD_ROOT/var/log
-install -m 600 /dev/null $RPM_BUILD_ROOT/var/log/tallylog
 install -d -m 755 $RPM_BUILD_ROOT/var/run/faillock
+install -d -m 755 $RPM_BUILD_ROOT%{_sysconfdir}/motd.d
+install -d -m 755 $RPM_BUILD_ROOT/usr/lib/motd.d
+install -d -m 755 $RPM_BUILD_ROOT/run/motd.d
 
 # Install man pages.
 install -m 644 %{SOURCE12} %{SOURCE13} %{SOURCE17} $RPM_BUILD_ROOT%{_mandir}/man5/
 ln -sf system-auth.5 $RPM_BUILD_ROOT%{_mandir}/man5/password-auth.5
 ln -sf system-auth.5 $RPM_BUILD_ROOT%{_mandir}/man5/fingerprint-auth.5
 ln -sf system-auth.5 $RPM_BUILD_ROOT%{_mandir}/man5/smartcard-auth.5
-
 
 for phase in auth acct passwd session ; do
 	ln -sf pam_unix.so $RPM_BUILD_ROOT%{_moduledir}/pam_unix_${phase}.so 
@@ -191,16 +187,14 @@ rm -f $RPM_BUILD_ROOT%{_moduledir}/*.la
 install -d -m 755 $RPM_BUILD_ROOT%{_libdir}
 for lib in libpam libpamc libpam_misc ; do
 pushd $RPM_BUILD_ROOT%{_libdir}
-ln -sf ../../lib/${lib}.so.*.* ${lib}.so
+ln -sf %{_pamlibdir}/${lib}.so.*.* ${lib}.so
 popd
 rm -f $RPM_BUILD_ROOT%{_pamlibdir}/${lib}.so
 done
 %endif
 
-rm -fr $RPM_BUILD_ROOT%{_docdir}/%{name}
-mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
-install -m0644 -t $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version} \
-        doc/txts/* doc/specs/rfc86.0.txt
+# Duplicate doc file sets.
+rm -fr $RPM_BUILD_ROOT/usr/share/doc/pam
 
 # Install the file for autocreation of /var/run subdirectories on boot
 install -m644 -D %{SOURCE15} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/pam.conf
@@ -211,11 +205,12 @@ install -m644 -D %{SOURCE15} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/pam.conf
 # Make sure every module subdirectory gave us a module.  Yes, this is hackish.
 for dir in modules/pam_* ; do
 if [ -d ${dir} ] ; then
-        [ ${dir} = "modules/pam_selinux" ] && continue
-        [ ${dir} = "modules/pam_sepermit" ] && continue
-        [ ${dir} = "modules/pam_tty_audit" ] && continue
 	[ ${dir} = "modules/pam_cracklib" ] && continue
+	[ ${dir} = "modules/pam_selinux" ] && continue
+	[ ${dir} = "modules/pam_sepermit" ] && continue
+	[ ${dir} = "modules/pam_tty_audit" ] && continue
 	[ ${dir} = "modules/pam_tally" ] && continue
+	[ ${dir} = "modules/pam_tally2" ] && continue
 	if ! ls -1 $RPM_BUILD_ROOT%{_moduledir}/`basename ${dir}`*.so ; then
 		echo ERROR `basename ${dir}` did not build a module.
 		exit 1
@@ -238,9 +233,6 @@ done
 
 %post
 /sbin/ldconfig
-if [ ! -e /var/log/tallylog ] ; then
-	install -m 600 /dev/null /var/log/tallylog
-fi
 
 %postun -p /sbin/ldconfig
 
@@ -259,7 +251,6 @@ fi
 %{_pamlibdir}/libpamc.so.*
 %{_pamlibdir}/libpam_misc.so.*
 %{_sbindir}/pam_console_apply
-%{_sbindir}/pam_tally2
 %{_sbindir}/faillock
 %attr(4755,root,root) %{_sbindir}/pam_timestamp_check
 %attr(4755,root,root) %{_sbindir}/unix_chkpwd
@@ -301,7 +292,6 @@ fi
 %{_moduledir}/pam_shells.so
 %{_moduledir}/pam_stress.so
 %{_moduledir}/pam_succeed_if.so
-%{_moduledir}/pam_tally2.so
 %{_moduledir}/pam_time.so
 %{_moduledir}/pam_timestamp.so
 %{_moduledir}/pam_umask.so
@@ -320,10 +310,10 @@ fi
 %config %{_secconfdir}/chroot.conf
 %config %{_secconfdir}/console.perms
 %config %{_secconfdir}/console.handlers
+%config %{_secconfdir}/faillock.conf
 %config %{_secconfdir}/group.conf
 %config %{_secconfdir}/limits.conf
 %dir %{_secconfdir}/limits.d
-%config %{_secconfdir}/limits.d/90-nproc.conf
 %config %{_secconfdir}/namespace.conf
 %dir %{_secconfdir}/namespace.d
 %attr(755,root,root) %config %{_secconfdir}/namespace.init
@@ -333,7 +323,6 @@ fi
 %dir %{_secconfdir}/console.apps
 %dir %{_secconfdir}/console.perms.d
 %dir /var/run/console
-%ghost %verify(not md5 size mtime) /var/log/tallylog
 %dir /var/run/faillock
 %{_prefix}/lib/tmpfiles.d/pam.conf
 
@@ -348,4 +337,3 @@ fi
 %defattr(-,root,root)
 %{_mandir}/man5/*
 %{_mandir}/man8/*
-%{_docdir}/%{name}-%{version}

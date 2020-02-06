@@ -1,0 +1,227 @@
+From 3a3e70739834cd5cbd17469907ef718c81ae40c0 Mon Sep 17 00:00:00 2001
+From: Carlos Santos <casantos@redhat.com>
+Date: Wed, 11 Sep 2019 11:50:28 -0300
+Subject: [PATCH] pam_lastlog: document the 'unlimited' option
+
+Signed-off-by: Carlos Santos <casantos@redhat.com>
+---
+ modules/pam_lastlog/pam_lastlog.8.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/modules/pam_lastlog/pam_lastlog.8.xml b/modules/pam_lastlog/pam_lastlog.8.xml
+index bc2e1be..f10e94a 100644
+--- a/modules/pam_lastlog/pam_lastlog.8.xml
++++ b/modules/pam_lastlog/pam_lastlog.8.xml
+@@ -48,6 +48,9 @@
+       <arg choice="opt">
+         inactive=&lt;days&gt;
+       </arg>
++      <arg choice="opt">
++        unlimited
++      </arg>
+     </cmdsynopsis>
+   </refsynopsisdiv>
+ 
+@@ -196,6 +199,18 @@
+           </para>
+         </listitem>
+       </varlistentry>
++      <varlistentry>
++        <term>
++          <option>unlimited</option>
++        </term>
++        <listitem>
++          <para>
++	    If the <emphasis>fsize</emphasis> limit is set, this option can be
++	    used to override it, preventing failures on systems with large UID
++	    values that lead lastlog to become a huge sparse file.
++          </para>
++        </listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ 
+@@ -300,6 +315,9 @@
+   <refsect1 id='pam_lastlog-see_also'>
+     <title>SEE ALSO</title>
+     <para>
++      <citerefentry>
++	<refentrytitle>limits.conf</refentrytitle><manvolnum>5</manvolnum>
++      </citerefentry>,
+       <citerefentry>
+ 	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+       </citerefentry>,
+-- 
+2.20.1
+
+From 9349333a9ae958205294cd25e97fd6b4805bd82b Mon Sep 17 00:00:00 2001
+From: Carlos Santos <casantos@redhat.com>
+Date: Tue, 10 Sep 2019 23:08:30 -0300
+Subject: [PATCH] pam_lastlog: prevent crash due to reduced 'fsize' limit
+
+It a reduced fsize limit is set in /etc/security/limits.conf and
+pam_limits is in use pam_lastlog may cause a crash, e.g.
+
+    ----- begin /etc/pam.d/su ----
+    auth        sufficient   pam_rootok.so
+    auth        required     pam_wheel.so use_uid
+    auth        required     pam_env.so
+    auth        required     pam_unix.so nullok
+    account     required     pam_unix.so
+    password    required     pam_unix.so nullok
+    session     required     pam_limits.so
+    session     required     pam_env.so
+    session     required     pam_unix.so
+    session     optional     pam_lastlog.so
+    ----- end /etc/pam.d/su -----
+
+    ----- begin /etc/security/limits.d/fsize.conf -----
+    * soft fsize 1710
+    * hard fsize 1710
+    ----- end /etc/security/limits.d/fsize.conf -----
+
+    # id user1
+    uid=1000(user1) gid=1000(user1) groups=1000(user1)
+    # su - user1
+    Last login: Wed Sep 11 01:52:44 UTC 2019 on console
+    $ exit
+    # id user2
+    uid=60000(user2) gid=60000(user2) groups=60000(user2)
+    # su - user2
+    File size limit exceeded
+
+This happens because pam_limits sets RLIMIT_FSIZE before pam_lastlog
+attempts to write /var/log/lastlog, leading to a SIGXFSZ signal.
+
+In order to fix this, and an 'unlimited' option, which leads to saving
+the 'fsize' limit and set it to unlimited before writing lastlog. After
+that, restore the saved value. If 'fsize' is already unlimited nothing
+is done.
+
+Failing to set the 'fsize' limit is not a fatal error.  With luck the
+configured limit will suffice, so we try to write lastlog anyway, even
+under the risk of dying due to a SIGXFSZ.
+
+Failing to restore the 'fsize' limit is a fatal error, since we don't
+want to keep it unlimited.
+
+Signed-off-by: Carlos Santos <casantos@redhat.com>
+---
+ modules/pam_lastlog/pam_lastlog.c | 66 ++++++++++++++++++++++++++-----
+ 1 file changed, 57 insertions(+), 9 deletions(-)
+
+diff --git a/modules/pam_lastlog/pam_lastlog.c b/modules/pam_lastlog/pam_lastlog.c
+index e980c04..a135c9f 100644
+--- a/modules/pam_lastlog/pam_lastlog.c
++++ b/modules/pam_lastlog/pam_lastlog.c
+@@ -25,6 +25,8 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <sys/types.h>
++#include <sys/time.h>
++#include <sys/resource.h>
+ #include <syslog.h>
+ #include <unistd.h>
+ 
+@@ -82,15 +84,16 @@ struct lastlog {
+ 
+ /* argument parsing */
+ 
+-#define LASTLOG_DATE        01  /* display the date of the last login */
+-#define LASTLOG_HOST        02  /* display the last host used (if set) */
+-#define LASTLOG_LINE        04  /* display the last terminal used */
+-#define LASTLOG_NEVER      010  /* display a welcome message for first login */
+-#define LASTLOG_DEBUG      020  /* send info to syslog(3) */
+-#define LASTLOG_QUIET      040  /* keep quiet about things */
+-#define LASTLOG_WTMP      0100  /* log to wtmp as well as lastlog */
+-#define LASTLOG_BTMP      0200  /* display failed login info from btmp */
+-#define LASTLOG_UPDATE    0400  /* update the lastlog and wtmp files (default) */
++#define LASTLOG_DATE          01  /* display the date of the last login */
++#define LASTLOG_HOST          02  /* display the last host used (if set) */
++#define LASTLOG_LINE          04  /* display the last terminal used */
++#define LASTLOG_NEVER        010  /* display a welcome message for first login */
++#define LASTLOG_DEBUG        020  /* send info to syslog(3) */
++#define LASTLOG_QUIET        040  /* keep quiet about things */
++#define LASTLOG_WTMP        0100  /* log to wtmp as well as lastlog */
++#define LASTLOG_BTMP        0200  /* display failed login info from btmp */
++#define LASTLOG_UPDATE      0400  /* update the lastlog and wtmp files (default) */
++#define LASTLOG_UNLIMITED  01000  /* unlimited file size (ignore 'fsize' limit) */
+ 
+ static int
+ _pam_auth_parse(pam_handle_t *pamh, int flags, int argc, const char **argv,
+@@ -158,6 +161,8 @@ _pam_session_parse(pam_handle_t *pamh, int flags, int argc, const char **argv)
+ 	    ctrl &= ~(LASTLOG_WTMP|LASTLOG_UPDATE);
+ 	} else if (!strcmp(*argv,"showfailed")) {
+ 	    ctrl |= LASTLOG_BTMP;
++	} else if (!strcmp(*argv,"unlimited")) {
++	    ctrl |= LASTLOG_UNLIMITED;
+ 	} else {
+ 	    pam_syslog(pamh, LOG_ERR, "unknown option: %s", *argv);
+ 	}
+@@ -373,6 +378,12 @@ static int
+ last_login_write(pam_handle_t *pamh, int announce, int last_fd,
+ 		 uid_t uid, const char *user)
+ {
++    static struct rlimit no_limit = {
++	RLIM_INFINITY,
++	RLIM_INFINITY
++    };
++    struct rlimit old_limit;
++    int setrlimit_res;
+     struct flock last_lock;
+     struct lastlog last_login;
+     time_t ll_time;
+@@ -427,6 +438,31 @@ last_login_write(pam_handle_t *pamh, int announce, int last_fd,
+         sleep(LASTLOG_IGNORE_LOCK_TIME);
+     }
+ 
++    /*
++     * Failing to set the 'fsize' limit is not a fatal error. We try to write
++     * lastlog anyway, under the risk of dying due to a SIGXFSZ.
++     */
++    D(("setting limit for 'fsize'"));
++
++    if ((announce & LASTLOG_UNLIMITED) == 0) {    /* don't set to unlimted */
++	setrlimit_res = -1;
++    } else if (getrlimit(RLIMIT_FSIZE, &old_limit) == 0) {
++	if (old_limit.rlim_cur == RLIM_INFINITY) {    /* already unlimited */
++	    setrlimit_res = -1;
++	} else {
++	    setrlimit_res = setrlimit(RLIMIT_FSIZE, &no_limit);
++	    if (setrlimit_res != 0)
++		pam_syslog(pamh, LOG_WARNING, "Could not set limit for 'fsize': %m");
++	}
++    } else {
++	setrlimit_res = -1;
++	if (errno == EINVAL) {
++	    pam_syslog(pamh, LOG_INFO, "Limit for 'fsize' not supported: %m");
++	} else {
++	    pam_syslog(pamh, LOG_WARNING, "Could not get limit for 'fsize': %m");
++	}
++    }
++
+     D(("writing to the lastlog file"));
+     if (pam_modutil_write (last_fd, (char *) &last_login,
+ 			   sizeof (last_login)) != sizeof(last_login)) {
+@@ -434,6 +470,18 @@ last_login_write(pam_handle_t *pamh, int announce, int last_fd,
+ 	retval = PAM_SERVICE_ERR;
+     }
+ 
++    /*
++     * Failing to restore the 'fsize' limit is a fatal error.
++     */
++    D(("restoring limit for 'fsize'"));
++    if (setrlimit_res == 0) {
++	setrlimit_res = setrlimit(RLIMIT_FSIZE, &old_limit);
++	if (setrlimit_res != 0) {
++	    pam_syslog(pamh, LOG_ERR, "Could not restore limit for 'fsize': %m");
++	    retval = PAM_SERVICE_ERR;
++	}
++    }
++
+     last_lock.l_type = F_UNLCK;
+     (void) fcntl(last_fd, F_SETLK, &last_lock);        /* unlock */
+     D(("unlocked"));
+-- 
+2.20.1
+

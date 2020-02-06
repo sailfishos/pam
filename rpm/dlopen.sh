@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tempdir=`mktemp -d ./dlopenXXXXXX`
+tempdir=`mktemp -d /tmp/dlopenXXXXXX`
 test -n "$tempdir" || exit 1
 cat >> $tempdir/dlopen.c << _EOF
 #include <dlfcn.h>
