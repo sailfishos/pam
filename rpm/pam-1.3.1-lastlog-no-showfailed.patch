@@ -1,0 +1,82 @@
+From c426914fa166ffb0482b6f6ad659ddf17d5dfaa1 Mon Sep 17 00:00:00 2001
+From: Nir Soffer <nsoffer@redhat.com>
+Date: Wed, 9 Jan 2019 23:41:16 +0200
+Subject: [PATCH] pam_lastlog: Improve silent option documentation
+
+The silent option explicitly silents only the last login message and not
+bad logins. Add a note to the manual to make this clear.
+
+* modules/pam_lastlog/pam_lastlog.8.xml: Clearify "silent showfailed"
+---
+ modules/pam_lastlog/pam_lastlog.8.xml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/modules/pam_lastlog/pam_lastlog.8.xml b/modules/pam_lastlog/pam_lastlog.8.xml
+index c8f247e..bc2e1be 100644
+--- a/modules/pam_lastlog/pam_lastlog.8.xml
++++ b/modules/pam_lastlog/pam_lastlog.8.xml
+@@ -102,6 +102,7 @@
+           <para>
+             Don't inform the user about any previous login,
+             just update the <filename>/var/log/lastlog</filename> file.
++            This option does not affect display of bad login attempts.
+           </para>
+         </listitem>
+       </varlistentry>
+-- 
+2.20.1
+
+From 7d036249a9772c546ede1f38ad68b3f1575216d6 Mon Sep 17 00:00:00 2001
+From: Nir Soffer <nsoffer@redhat.com>
+Date: Sun, 6 Jan 2019 00:36:27 +0200
+Subject: [PATCH] pam_lastlog: Respect PAM_SILENT flag
+
+pam_lastlog module will not log info about failed login if the session
+was opened with PAM_SILENT flag.
+
+Example use case enabled by this change:
+
+    sudo --non-interactive program
+
+If this command is run by another program expecting specific output from
+the command run by sudo, the unexpected info about failed logins will
+break this program.
+
+* modules/pam_lastlog/pam_lastlog.c: Respect silent option.
+  (_pam_session_parse): Unset LASTLOG_BTMP if PAM_SILENT is set.
+---
+ modules/pam_lastlog/pam_lastlog.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/modules/pam_lastlog/pam_lastlog.c b/modules/pam_lastlog/pam_lastlog.c
+index 18bf7be..e980c04 100644
+--- a/modules/pam_lastlog/pam_lastlog.c
++++ b/modules/pam_lastlog/pam_lastlog.c
+@@ -135,11 +135,6 @@ _pam_session_parse(pam_handle_t *pamh, int flags, int argc, const char **argv)
+ {
+     int ctrl=(LASTLOG_DATE|LASTLOG_HOST|LASTLOG_LINE|LASTLOG_WTMP|LASTLOG_UPDATE);
+ 
+-    /* does the appliction require quiet? */
+-    if (flags & PAM_SILENT) {
+-	ctrl |= LASTLOG_QUIET;
+-    }
+-
+     /* step through arguments */
+     for (; argc-- > 0; ++argv) {
+ 
+@@ -168,6 +163,12 @@ _pam_session_parse(pam_handle_t *pamh, int flags, int argc, const char **argv)
+ 	}
+     }
+ 
++    /* does the appliction require quiet? */
++    if (flags & PAM_SILENT) {
++	ctrl |= LASTLOG_QUIET;
++	ctrl &= ~LASTLOG_BTMP;
++    }
++
+     D(("ctrl = %o", ctrl));
+     return ctrl;
+ }
+-- 
+2.20.1
+

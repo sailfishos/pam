@@ -1,0 +1,33 @@
+From e31dd6c7d0faa7a06d3ebd50a0b6957b9f822d15 Mon Sep 17 00:00:00 2001
+From: Tomas Mraz <tmraz@fedoraproject.org>
+Date: Wed, 7 Aug 2019 18:13:57 +0200
+Subject: [PATCH] pam_tty_audit: Manual page clarification about password
+ logging
+
+* modules/pam_tty_audit/pam_tty_audit.8.xml: Explanation why passwords
+can be sometimes logged even when the option is not set.
+---
+ modules/pam_tty_audit/pam_tty_audit.8.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/modules/pam_tty_audit/pam_tty_audit.8.xml b/modules/pam_tty_audit/pam_tty_audit.8.xml
+index 59a3406..e346c68 100644
+--- a/modules/pam_tty_audit/pam_tty_audit.8.xml
++++ b/modules/pam_tty_audit/pam_tty_audit.8.xml
+@@ -149,6 +149,13 @@
+       greater than or equal to <replaceable>min_uid</replaceable> will be
+       matched.
+     </para>
++    <para>
++      Please note that passwords in some circumstances may be logged by TTY auditing
++      even if the <option>log_passwd</option> is not used. For example, all input to
++      an ssh session will be logged - even if there is a password being typed into
++      some software running at the remote host because only the local TTY state
++      affects the local TTY auditing.
++    </para>
+   </refsect1>
+ 
+   <refsect1 id='pam_tty_audit-examples'>
+-- 
+2.20.1
+
