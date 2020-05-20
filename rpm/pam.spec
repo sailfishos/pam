@@ -75,8 +75,6 @@ BuildRequires: bison, flex, sed
 BuildRequires: perl, pkgconfig, gettext-devel
 Requires: glibc >= 2.3.90-37
 BuildRequires: db4-devel
-# Systemd pam library need to be installed on right folder
-Conflicts: systemd <= 225+git21
 
 URL: http://www.linux-pam.org/
 
