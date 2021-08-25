@@ -73,6 +73,7 @@ BuildRequires: autoconf >= 2.60
 BuildRequires: automake, libtool
 BuildRequires: bison, flex, sed
 BuildRequires: perl, pkgconfig, gettext-devel
+BuildRequires: pkgconfig(libcrypt)
 Requires: glibc >= 2.3.90-37
 BuildRequires: db4-devel
 # Systemd pam library need to be installed on right folder
