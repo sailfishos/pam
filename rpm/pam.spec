@@ -8,8 +8,7 @@ Release: 1
 # - this option is redundant as the BSD license allows that anyway.
 # pam_timestamp, pam_loginuid, and pam_console modules are GPLv2+.
 License: BSD and GPLv2+
-Group: System Environment/Base
-Source0: %{name}-%{version}.tar.bz2
+Source0: %{name}-%{version}.tar.xz
 Source2: pam-redhat-%{pam_redhat_version}.tar.bz2
 Source5: other.pamd
 Source6: system-auth.pamd
@@ -75,14 +74,10 @@ BuildRequires: bison, flex, sed
 BuildRequires: perl, pkgconfig, gettext-devel
 BuildRequires: pkgconfig(libcrypt)
 Requires: glibc >= 2.3.90-37
-BuildRequires: db4-devel
 # Systemd pam library need to be installed on right folder
 Conflicts: systemd <= 225+git21
 
 URL: http://www.linux-pam.org/
-
-Obsoletes: pam-modules-userdb <= 1.1.1
-Provides:  pam-modules-userdb = %{version}
 
 %description
 PAM (Pluggable Authentication Modules) is a system security tool that
@@ -90,7 +85,6 @@ allows system administrators to set authentication policy without
 having to recompile programs that handle authentication.
 
 %package devel
-Group: Development/Libraries
 Summary: Files needed for developing PAM-aware applications and modules for PAM
 Requires: pam%{?_isa} = %{version}-%{release}
 
@@ -103,11 +97,10 @@ and modules for use with the PAM system.
 
 %package doc
 Summary:   Documentation for %{name}
-Group:     Documentation
 Requires:  %{name} = %{version}-%{release}
 
 %description doc
-Man pages for %{name}.
+Documentation and man pages for %{name}.
 
 %prep
 %autosetup -p1 -n %{name}-%{version}/pam
@@ -133,7 +126,8 @@ autoreconf -v -f -i
 	--disable-static \
 	--disable-prelude \
 	--disable-nis \
-	--disable-cracklib
+	--disable-cracklib \
+	--enable-db=no
 make
 # we do not use _smp_mflags because the build of sources in yacc/flex fails
 
@@ -212,6 +206,7 @@ if [ -d ${dir} ] ; then
 	[ ${dir} = "modules/pam_tty_audit" ] && continue
 	[ ${dir} = "modules/pam_tally" ] && continue
 	[ ${dir} = "modules/pam_tally2" ] && continue
+	[ ${dir} = "modules/pam_userdb" ] && continue
 	if ! ls -1 $RPM_BUILD_ROOT%{_moduledir}/`basename ${dir}`*.so ; then
 		echo ERROR `basename ${dir}` did not build a module.
 		exit 1
@@ -232,8 +227,7 @@ for module in $RPM_BUILD_ROOT%{_moduledir}/pam*.so ; do
 	fi
 done
 
-%post
-/sbin/ldconfig
+%post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
@@ -301,7 +295,6 @@ done
 %{_moduledir}/pam_unix_auth.so
 %{_moduledir}/pam_unix_passwd.so
 %{_moduledir}/pam_unix_session.so
-%{_moduledir}/pam_userdb.so
 %{_moduledir}/pam_warn.so
 %{_moduledir}/pam_wheel.so
 %{_moduledir}/pam_xauth.so
