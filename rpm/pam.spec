@@ -19,7 +19,11 @@ Source16: postlogin.pamd
 # https://github.com/linux-pam/linux-pam/commit/aabd5314a6d76968c377969b49118a2df3f97003
 Patch5:  pam-1.6.1-pam-env-econf-read-file-fixes.patch
 
-%{load:%{SOURCE3}}
+%global _pam_libdir     %{_libdir}
+%global _pam_moduledir  %{_libdir}/security
+%global _pam_secconfdir %{_sysconfdir}/security
+%global _pam_confdir    %{_sysconfdir}/pam.d
+%global _pam_vendordir  %{_datadir}/pam.d
 
 ### Dependencies ###
 Requires(post): coreutils, /sbin/ldconfig
