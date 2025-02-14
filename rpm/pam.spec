@@ -1,6 +1,6 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
-Version: 1.6.1
+Version: 1.7.1
 Release: 1
 # The library is BSD licensed with option to relicense as GPLv2+
 # - this option is redundant as the BSD license allows that anyway.
@@ -16,23 +16,20 @@ Source11: dlopen.sh
 Source15: pamtmp.conf
 Source16: postlogin.pamd
 
-# https://github.com/linux-pam/linux-pam/commit/aabd5314a6d76968c377969b49118a2df3f97003
-Patch5:  pam-1.6.1-pam-env-econf-read-file-fixes.patch
-
 %global _pam_libdir     %{_libdir}
 %global _pam_moduledir  %{_libdir}/security
 %global _pam_secconfdir %{_sysconfdir}/security
 %global _pam_confdir    %{_sysconfdir}/pam.d
 %global _pam_vendordir  %{_datadir}/pam.d
 
+%global _systemd_unitdir %{_prefix}/lib/systemd/system
+
 ### Dependencies ###
 Requires(post): coreutils, /sbin/ldconfig
-BuildRequires: autoconf >= 2.60
-BuildRequires: automake, libtool
 BuildRequires: bison, flex, sed
+BuildRequires: meson
 BuildRequires: perl, pkgconfig, gettext-devel
 BuildRequires: pkgconfig(libcrypt)
-BuildRequires: pkgconfig(systemd)
 Provides: pam-doc >= 1.6.1
 Obsoletes: pam-doc < 1.6.1
 
@@ -60,27 +57,26 @@ and modules for use with the PAM system.
 %build
 touch ChangeLog
 
-autoreconf -v -f -i
-%configure \
-	--libdir=%{_pam_libdir} \
-	--includedir=%{_includedir}/security \
-	--disable-rpath \
-	--disable-selinux \
-	--disable-audit \
-	--disable-static \
-	--disable-prelude \
-	--disable-nis \
-	--disable-doc \
-	--enable-db=no
+%meson \
+  -Daudit=disabled \
+  -Ddocs=disabled \
+  -Deconf=disabled \
+  -Delogind=disabled \
+  -Dnis=disabled \
+  -Dlogind=disabled \
+  -Dopenssl=disabled \
+  -Dpam_lastlog=disabled \
+  -Dpam_userdb=disabled \
+  -Dselinux=disabled
 
-%make_build
+%meson_build
 
 %install
 # Install the macros file
 install -D -m 644 %{SOURCE3} %{buildroot}%{_rpmconfigdir}/macros.d/macros.%{name}
 
 # Install the binaries, libraries, and modules.
-%make_install LDCONFIG=:
+%meson_install
 
 # Included in setup package
 rm -f %{buildroot}%{_sysconfdir}/environment
@@ -125,8 +121,8 @@ done
 install -m644 -D %{SOURCE15} %{buildroot}%{_prefix}/lib/tmpfiles.d/pam.conf
 
 # Install systemd unit file.
-install -m644 -D modules/pam_namespace/pam_namespace.service \
-  %{buildroot}%{_unitdir}/pam_namespace.service
+install -m644 -D %{_vpath_builddir}/modules/pam_namespace/pam_namespace.service \
+  %{buildroot}%{_systemd_unitdir}/pam_namespace.service
 
 %find_lang Linux-PAM
 
@@ -181,6 +177,7 @@ done
 %attr(4755,root,root) %{_sbindir}/pam_timestamp_check
 %attr(4755,root,root) %{_sbindir}/unix_chkpwd
 %attr(0755,root,root) %{_sbindir}/mkhomedir_helper
+%attr(0755,root,root) %{_sbindir}/pwhistory_helper
 %dir %{_pam_moduledir}
 %{_pam_moduledir}/pam_access.so
 %{_pam_moduledir}/pam_canonicalize_user.so
@@ -227,7 +224,7 @@ done
 %{_pam_moduledir}/pam_wheel.so
 %{_pam_moduledir}/pam_xauth.so
 %{_pam_moduledir}/pam_filter
-%{_unitdir}/pam_namespace.service
+%{_systemd_unitdir}/pam_namespace.service
 %dir %{_pam_secconfdir}
 %config %{_pam_secconfdir}/access.conf
 %config %{_pam_secconfdir}/faillock.conf
