@@ -25,6 +25,8 @@ Patch5:  pam-1.6.1-pam-env-econf-read-file-fixes.patch
 %global _pam_confdir    %{_sysconfdir}/pam.d
 %global _pam_vendordir  %{_datadir}/pam.d
 
+%global _systemd_unitdir %{_prefix}/lib/systemd/system
+
 ### Dependencies ###
 Requires(post): coreutils, /sbin/ldconfig
 BuildRequires: autoconf >= 2.60
@@ -32,7 +34,6 @@ BuildRequires: automake, libtool
 BuildRequires: bison, flex, sed
 BuildRequires: perl, pkgconfig, gettext-devel
 BuildRequires: pkgconfig(libcrypt)
-BuildRequires: pkgconfig(systemd)
 Provides: pam-doc >= 1.6.1
 Obsoletes: pam-doc < 1.6.1
 
@@ -126,7 +127,7 @@ install -m644 -D %{SOURCE15} %{buildroot}%{_prefix}/lib/tmpfiles.d/pam.conf
 
 # Install systemd unit file.
 install -m644 -D modules/pam_namespace/pam_namespace.service \
-  %{buildroot}%{_unitdir}/pam_namespace.service
+  %{buildroot}%{_systemd_unitdir}/pam_namespace.service
 
 %find_lang Linux-PAM
 
@@ -227,7 +228,7 @@ done
 %{_pam_moduledir}/pam_wheel.so
 %{_pam_moduledir}/pam_xauth.so
 %{_pam_moduledir}/pam_filter
-%{_unitdir}/pam_namespace.service
+%{_systemd_unitdir}/pam_namespace.service
 %dir %{_pam_secconfdir}
 %config %{_pam_secconfdir}/access.conf
 %config %{_pam_secconfdir}/faillock.conf
